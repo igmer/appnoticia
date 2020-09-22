@@ -11,6 +11,9 @@ import com.traikers.appnoticia.models.Noticia;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -29,9 +32,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         lvNoticia = findViewById(R.id.lvNoticia);
-        getNoticia("http://newsapi.org/v2/everything?q=bitcoin&from=2020-08-19&sortBy=publishedAt&apiKey=f23f1461e4e547a18717a05eea7070f9&language=es");
+        Calendar c = Calendar.getInstance();
+        Date now = c.getTime();
+        c.add(Calendar.DATE, -5);
+        Date nowMinus15 = c.getTime();
+        String fechaActual = new SimpleDateFormat("yyyy-MM-dd").format(nowMinus15);
+       //usando la clase Calendar obtenemos la fecha y luego le restamos 5 dias, para que nos traiga resultados de los ultmimos 5 dias
 
-
+        String tema = getIntent().getExtras().getString("tema");
+        String url = "http://newsapi.org/v2/everything?q="+tema+"&from="+fechaActual+"&sortBy=publishedAt&apiKey=f23f1461e4e547a18717a05eea7070f9&language=es";
+        getNoticia(url);
     }
 
     private void getNoticia(String url) { //metodo que pide las noticias al servidor
@@ -59,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                     final String dataResponse = response.body().string();
+                    System.out.println(dataResponse);
                     MainActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -79,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
         Gson gson = new Gson();
         Noticia m = gson.fromJson(dataResponse, Noticia.class);
         System.out.println("aqui"+m.getTotalResults());
+        AdaptadorNoticia  adaptadorNoticia = new AdaptadorNoticia(m,getApplicationContext());
+        lvNoticia.setAdapter(adaptadorNoticia);
 
     }
 }
